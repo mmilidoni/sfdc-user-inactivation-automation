@@ -3,26 +3,37 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
     private List<String> recipients;
     private List<Database.SaveResult> frozenResult = new List<Database.SaveResult>();
     private Map<Id, Id> userLoginToUser = new Map<Id, Id>();
+    @TestVisible private Inactive_Users_Setting_mm__mdt inactiveUserSetting;
+    public Date LAST_LOGIN_FREEZE_DATE;
+    public Date LAST_LOGIN_INACTIVE_DATE;
     
     public UserInactivationBatch_mm() {
         List<Inactive_Users_Setting_mm__mdt> ius = Inactive_Users_Setting_mm__mdt.getAll().values();
 
-        if (ius.size() > 0) {
-            if (String.isNotBlank(ius[0].Email_Recipient_mm__c)) {
-                recipients = ius[0].Email_Recipient_mm__c.split(',');
+        if (ius != null && ius.size() > 0) {
+            inactiveUserSetting = ius[0];
+            if (String.isNotBlank(inactiveUserSetting.Email_Recipient_mm__c)) {
+                recipients = inactiveUserSetting.Email_Recipient_mm__c.split(',');
             }
         }
+
+        LAST_LOGIN_FREEZE_DATE = Date.today().addDays(-inactiveUserSetting.Freezing_Days_After_Last_Login_mm__c.intValue());
+        LAST_LOGIN_INACTIVE_DATE = Date.today().addDays(-inactiveUserSetting.Inactivation_Days_After_Last_Login_mm__c.intValue());
     }
-    public Database.QueryLocator start(Database.BatchableContext BC){
-        return Database.getQueryLocator('SELECT Id, Freeze_Date_mm__c FROM User WHERE Freeze_Date_mm__c <= TODAY');
+    public Database.QueryLocator start(Database.BatchableContext BC) {
+        return Database.getQueryLocator([SELECT Id, LastLoginDate 
+            FROM User 
+            WHERE (Skip_Freezing_mm__c = false AND LastLoginDate <= :LAST_LOGIN_FREEZE_DATE) 
+                OR (Skip_Inactivation_mm__c = false AND LastLoginDate <= :LAST_LOGIN_INACTIVE_DATE)
+        ]);
     }
 
     public void execute(Database.BatchableContext BC, List<User> users){
         Map<Id, User> userIdsMapToFreeze = new Map<Id, User>();
         Date today = System.today();
         for(User u : users){
-            if (u.Freeze_Date_mm__c <= today) {
-                u.Freeze_Date_mm__c = null;
+            if (u.LastLoginDate <= LAST_LOGIN_FREEZE_DATE) {
+                u.Skip_Freezing_mm__c = null;
                 userIdsMapToFreeze.put(u.Id, u);
             }
         }
@@ -33,7 +44,6 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
             WHERE UserId IN :userIdsMapToFreeze.keySet()];
 
             for (UserLogin ul : userLogins) {
-                ul.IsFrozen = true;
                 userLoginToUser.put(ul.Id, ul.UserId);
             }
 
@@ -43,7 +53,7 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
    
     public void finish(Database.BatchableContext BC){
 
-        if (frozenResult != null){
+        if (frozenResult.size() > 0){
             String bodySuccesses = '';
             String bodyErrors = '';
             List<User> usersSuccess = new List<User>();
@@ -56,7 +66,7 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
                     bodySuccesses += 'UserLogin Id: ' + r.getId()  + '<br />';
                     usersSuccess.add(new User(
                         Id=userLoginToUser.get(r.getId()), 
-                        Freeze_Date_mm__c = null)
+                        Skip_Freezing_mm__c = true)
                     );
                 }
             }
