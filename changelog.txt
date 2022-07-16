@@ -1,7 +1,8 @@
 Custom Fields
 -------------
 Object: User
-API Name: Freeze_Date_mm__c
+API Name: Skip_Freezing_mm__c
+API Name: Skip_Inactivation_mm__c
 
 
 Custom Metadata Types
@@ -10,9 +11,12 @@ Object: Inactive_Users_Setting_mm__mdt
 Fields:
     Email_Recipient_mm__c
     Batch_Size_mm__c
+    Freezing_Days_After_Last_Login_mm__c
+    Inactivation_Days_After_Last_Login_mm__c
 
 
 APEX
 ----
 UserInactivationBatch_mm
 UserInactivationBatch_mm_Test
+UserInactivationSchedulable_mm

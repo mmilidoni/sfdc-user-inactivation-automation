@@ -6,6 +6,7 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
     @TestVisible private Inactive_Users_Setting_mm__mdt inactiveUserSetting;
     public Date LAST_LOGIN_FREEZE_DATE;
     public Date LAST_LOGIN_INACTIVE_DATE;
+    public static Integer batchSize = 200;
     
     public UserInactivationBatch_mm() {
         List<Inactive_Users_Setting_mm__mdt> ius = Inactive_Users_Setting_mm__mdt.getAll().values();
@@ -17,22 +18,29 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
             }
         }
 
+        if (ius.size() > 0 && ius[0].Batch_Size_mm__c > 0) {
+            batchSize = ius[0].Batch_Size_mm__c.intValue();
+        }
+
         LAST_LOGIN_FREEZE_DATE = Date.today().addDays(-inactiveUserSetting.Freezing_Days_After_Last_Login_mm__c.intValue());
         LAST_LOGIN_INACTIVE_DATE = Date.today().addDays(-inactiveUserSetting.Inactivation_Days_After_Last_Login_mm__c.intValue());
     }
     public Database.QueryLocator start(Database.BatchableContext BC) {
-        return Database.getQueryLocator([SELECT Id, LastLoginDate 
-            FROM User 
-            WHERE (Skip_Freezing_mm__c = false AND LastLoginDate <= :LAST_LOGIN_FREEZE_DATE) 
-                OR (Skip_Inactivation_mm__c = false AND LastLoginDate <= :LAST_LOGIN_INACTIVE_DATE)
-        ]);
+        String q = 'SELECT Id, LastLoginDate, Username, Skip_Freezing_mm__c, Skip_Inactivation_mm__c ' +
+        'FROM User ' +
+        'WHERE (Skip_Freezing_mm__c = false AND (LastLoginDate = NULL OR LastLoginDate <= :LAST_LOGIN_FREEZE_DATE)) ' +
+            'OR (Skip_Inactivation_mm__c = false AND (LastLoginDate = NULL OR LastLoginDate <= :LAST_LOGIN_INACTIVE_DATE)) ';
+        if (Test.isRunningTest()) {
+                q += 'LIMIT :batchSize';
+        }
+        return Database.getQueryLocator(q);
     }
 
     public void execute(Database.BatchableContext BC, List<User> users){
         Map<Id, User> userIdsMapToFreeze = new Map<Id, User>();
         Date today = System.today();
         for(User u : users){
-            if (u.LastLoginDate <= LAST_LOGIN_FREEZE_DATE) {
+            if (u.Skip_Freezing_mm__c == false && (u.LastLoginDate == null || u.LastLoginDate <= LAST_LOGIN_FREEZE_DATE)) {
                 u.Skip_Freezing_mm__c = null;
                 userIdsMapToFreeze.put(u.Id, u);
             }
@@ -48,6 +56,8 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
             }
 
             frozenResult.addAll(Database.update(userLogins, false));
+
+            System.debug(userIdsMapToFreeze.size() + ' users frozen');
         }
     }
    
