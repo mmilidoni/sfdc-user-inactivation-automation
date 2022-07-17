@@ -78,8 +78,7 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
         }
 
         if (usersToInactivate.size() > 0) {
-            update usersToInactivate;
-        //    inactivatedResult.addAll(Database.update(usersToInactivate, false));
+            inactivatedResult.addAll(Database.update(usersToInactivate, false));
             System.debug(usersToInactivate.size() + ' users inactivated');
         }
     }
