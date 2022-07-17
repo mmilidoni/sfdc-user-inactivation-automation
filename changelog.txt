@@ -13,7 +13,7 @@ Fields:
     Batch_Size_mm__c
     Freezing_Days_After_Last_Login_mm__c
     Inactivation_Days_After_Last_Login_mm__c
-
+    Excluded_Profiles_mm__c
 
 APEX
 ----

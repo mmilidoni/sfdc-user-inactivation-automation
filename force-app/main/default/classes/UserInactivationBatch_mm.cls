@@ -30,14 +30,19 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
         LAST_LOGIN_INACTIVE_DATE = Date.today().addDays(-inactiveUserSetting.Inactivation_Days_After_Last_Login_mm__c.intValue());
     }
     public Database.QueryLocator start(Database.BatchableContext BC) {
-        Profile p = [SELECT Id FROM Profile WHERE Name='Standard User']; 
-        String pid = p.Id;
 
         String q = 'SELECT Id, LastLoginDate, Username, Skip_Freezing_mm__c, Skip_Inactivation_mm__c, IsActive ' +
         'FROM User ' +
         'WHERE Profile.UserLicense.Name = \'Salesforce\' AND ((Skip_Freezing_mm__c = false AND (LastLoginDate = NULL OR LastLoginDate <= :LAST_LOGIN_FREEZE_DATE)) ' +
-            'OR (Skip_Inactivation_mm__c = false AND (LastLoginDate = NULL OR LastLoginDate <= :LAST_LOGIN_INACTIVE_DATE))) ' +
-            ' ';
+            'OR (Skip_Inactivation_mm__c = false AND (LastLoginDate = NULL OR LastLoginDate <= :LAST_LOGIN_INACTIVE_DATE))) ';
+
+        if (String.isNotBlank(inactiveUserSetting.Excluded_Profiles_mm__c)) {
+            // List<String> pe = inactiveUserSetting.Excluded_Profiles_mm__c.split(',');
+            List<Profile> excludedProfiles = [SELECT Id FROM Profile WHERE Name IN :inactiveUserSetting.Excluded_Profiles_mm__c.split(',')]; 
+            System.debug(excludedProfiles);
+            q += 'AND (NOT ProfileId IN :excludedProfiles) ';
+        }
+    
         if (Test.isRunningTest()) {
                 q += 'LIMIT :batchSize';
         }
