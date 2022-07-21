@@ -10,44 +10,23 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
     public static Integer batchSize = 200;
     
     public UserInactivationBatch_mm() {
-        // retrieving settings
-        List<Inactive_Users_Setting_mm__mdt> ius = Inactive_Users_Setting_mm__mdt.getAll().values();
 
-        if (ius != null && ius.size() > 0) {
-            inactiveUserSetting = ius[0];
-            // retrieving email addresses for sending notification email
-            if (String.isNotBlank(inactiveUserSetting.Email_Recipient_mm__c)) {
-                recipients = inactiveUserSetting.Email_Recipient_mm__c.split(',');
-            }
-            // retrieving batch size
-            if (inactiveUserSetting.Batch_Size_mm__c > 0) {
-                batchSize = inactiveUserSetting.Batch_Size_mm__c.intValue();
-            }
+        //TODO get user settings
+        inactiveUserSetting = UserInactivationUtil.getInactiveUserSettings();
+        // retrieving email addresses for sending notification email
+        if (String.isNotBlank(inactiveUserSetting.Email_Recipient_mm__c)) {
+            recipients = inactiveUserSetting.Email_Recipient_mm__c.split(',');
         }
-        //TODO: else throw exception
-
+        // retrieving batch size
+        if (inactiveUserSetting.Batch_Size_mm__c > 0) {
+            batchSize = inactiveUserSetting.Batch_Size_mm__c.intValue();
+        }
+        
         LAST_LOGIN_FREEZE_DATE = Date.today().addDays(-inactiveUserSetting.Freezing_Days_After_Last_Login_mm__c.intValue());
         LAST_LOGIN_INACTIVE_DATE = Date.today().addDays(-inactiveUserSetting.Inactivation_Days_After_Last_Login_mm__c.intValue());
     }
     public Database.QueryLocator start(Database.BatchableContext BC) {
-
-        String q = 'SELECT Id, LastLoginDate, Username, Skip_Freezing_mm__c, Skip_Inactivation_mm__c, IsActive ' +
-        'FROM User ' +
-        'WHERE Profile.UserLicense.Name = \'Salesforce\' AND ((Skip_Freezing_mm__c = false AND (LastLoginDate = NULL OR LastLoginDate <= :LAST_LOGIN_FREEZE_DATE)) ' +
-            'OR (Skip_Inactivation_mm__c = false AND (LastLoginDate = NULL OR LastLoginDate <= :LAST_LOGIN_INACTIVE_DATE))) ';
-
-        if (String.isNotBlank(inactiveUserSetting.Excluded_Profiles_mm__c)) {
-            // List<String> pe = inactiveUserSetting.Excluded_Profiles_mm__c.split(',');
-            List<Profile> excludedProfiles = [SELECT Id FROM Profile WHERE Name IN :inactiveUserSetting.Excluded_Profiles_mm__c.split(',')]; 
-            System.debug(excludedProfiles);
-            q += 'AND (NOT ProfileId IN :excludedProfiles) ';
-        }
-    
-        if (Test.isRunningTest()) {
-                q += 'LIMIT :batchSize';
-        }
-        System.debug(q);
-        return Database.getQueryLocator(q);
+        return Database.getQueryLocator(UserInactivationUtil.getQuery(LAST_LOGIN_FREEZE_DATE, LAST_LOGIN_INACTIVE_DATE));
     }
 
     public void execute(Database.BatchableContext BC, List<User> users){
