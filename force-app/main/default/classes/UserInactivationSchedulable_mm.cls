@@ -1,5 +1,5 @@
 public class UserInactivationSchedulable_mm implements Schedulable {
-    global void execute(SchedulableContext sc) {
+    public void execute(SchedulableContext sc) {
         List<Inactive_Users_Setting_mm__mdt> ius = Inactive_Users_Setting_mm__mdt.getAll().values();
         Integer batchSize = 200;
         if (ius.size() > 0 && ius[0].Batch_Size_mm__c > 0) {
