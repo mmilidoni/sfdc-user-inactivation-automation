@@ -20,3 +20,11 @@ APEX
 UserInactivationBatch_mm
 UserInactivationBatch_mm_Test
 UserInactivationSchedulable_mm
+
+REPORTS
+-------
+Users_by_login_date_mm
+
+REPORT FOLDERS
+--------------
+UserFreezingInactivationAutomation_mm
