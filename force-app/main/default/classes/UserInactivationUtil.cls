@@ -10,12 +10,12 @@ public class UserInactivationUtil {
         }
     }
 
-    public static String getQuery(DateTime lastLoginFreezeDate, DateTime lastLoginInactiveDate) {
-
+    public static String getQuery(Date lastLoginFreezeDate, Date lastLoginInactiveDate, Boolean eq) {
+        String operator = eq ? '=' : '<=';
         String q = 'SELECT Id, LastLoginDate, Username, Skip_Freezing_mm__c, Skip_Inactivation_mm__c, IsActive ' +
         'FROM User ' +
-        'WHERE Profile.UserLicense.Name = \'Salesforce\' AND ((Skip_Freezing_mm__c = false AND (LastLoginDate = NULL OR LastLoginDate <= ' + lastLoginFreezeDate.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX') + ')) ' +
-        'OR (Skip_Inactivation_mm__c = false AND (LastLoginDate = NULL OR LastLoginDate <= ' + lastLoginInactiveDate.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX') + '))) ';
+        'WHERE Profile.UserLicense.Name = \'Salesforce\' AND ((Skip_Freezing_mm__c = false AND (LastLoginDate = NULL OR DAY_ONLY(LastLoginDate) ' + operator + ' ' + String.valueOf(lastLoginFreezeDate) + ')) ' +
+        'OR (Skip_Inactivation_mm__c = false AND (LastLoginDate = NULL OR DAY_ONLY(LastLoginDate) ' + operator + ' ' + String.valueOf(lastLoginInactiveDate) + '))) ';
 
         Inactive_Users_Setting_mm__mdt inactiveUserSetting = getInactiveUserSettings();
 

@@ -26,7 +26,7 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
         LAST_LOGIN_INACTIVE_DATE = Date.today().addDays(-inactiveUserSetting.Inactivation_Days_After_Last_Login_mm__c.intValue());
     }
     public Database.QueryLocator start(Database.BatchableContext BC) {
-        return Database.getQueryLocator(UserInactivationUtil.getQuery(LAST_LOGIN_FREEZE_DATE, LAST_LOGIN_INACTIVE_DATE));
+        return Database.getQueryLocator(UserInactivationUtil.getQuery(LAST_LOGIN_FREEZE_DATE, LAST_LOGIN_INACTIVE_DATE, false));
     }
 
     public void execute(Database.BatchableContext BC, List<User> users){
