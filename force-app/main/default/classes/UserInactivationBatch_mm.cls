@@ -10,9 +10,13 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
     public static Integer batchSize = 200;
     
     public UserInactivationBatch_mm() {
+        List<Inactive_Users_Setting_mm__mdt> ius = Inactive_Users_Setting_mm__mdt.getAll().values();
 
-        //TODO get user settings
-        inactiveUserSetting = UserInactivationUtil.getInactiveUserSettings();
+        if (ius != null && ius.size() > 0) {
+            inactiveUserSetting = ius[0];
+        } else {
+            throw new UnexpectedException('No record with "Default" as name found into Inactive_Users_Setting_mm__mdt');
+        }
         // retrieving email addresses for sending notification email
         if (String.isNotBlank(inactiveUserSetting.Email_Recipient_mm__c)) {
             recipients = inactiveUserSetting.Email_Recipient_mm__c.split(',');
@@ -26,7 +30,24 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
         LAST_LOGIN_INACTIVE_DATE = Date.today().addDays(-inactiveUserSetting.Inactivation_Days_After_Last_Login_mm__c.intValue());
     }
     public Database.QueryLocator start(Database.BatchableContext BC) {
-        return Database.getQueryLocator(UserInactivationUtil.getQuery(LAST_LOGIN_FREEZE_DATE, LAST_LOGIN_INACTIVE_DATE, false));
+        String q = 'SELECT Id, LastLoginDate, Username, Skip_Freezing_mm__c, Skip_Inactivation_mm__c, IsActive ' +
+        'FROM User ' +
+        'WHERE Profile.UserLicense.Name = \'Salesforce\' AND ((Skip_Freezing_mm__c = false AND (LastLoginDate = NULL OR DAY_ONLY(LastLoginDate) <= :LAST_LOGIN_FREEZE_DATE)) ' +
+        'OR (Skip_Inactivation_mm__c = false AND (LastLoginDate = NULL OR DAY_ONLY(LastLoginDate) <= :LAST_LOGIN_INACTIVE_DATE))) ';
+
+        if (String.isNotBlank(inactiveUserSetting.Excluded_Profiles_mm__c)) {
+            Map<String, Profile> m = new Map<String, Profile>([SELECT Id FROM Profile WHERE Name IN :inactiveUserSetting.Excluded_Profiles_mm__c.split(',')]);
+            String vals = '\'' + String.join(new List<String>(m.keySet()), '\',\'') + '\'';
+
+            q += 'AND (NOT ProfileId IN (' + vals + ')) ';
+        }
+    
+        if (Test.isRunningTest()) {
+                q += 'LIMIT :batchSize';
+        }
+        System.debug(q);
+
+        return Database.getQueryLocator(q);
     }
 
     public void execute(Database.BatchableContext BC, List<User> users){
