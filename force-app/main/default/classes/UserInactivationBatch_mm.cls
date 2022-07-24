@@ -32,7 +32,7 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
     public Database.QueryLocator start(Database.BatchableContext BC) {
         String q = 'SELECT Id, LastLoginDate, Username, Skip_Freezing_mm__c, Skip_Inactivation_mm__c, IsActive ' +
         'FROM User ' +
-        'WHERE Profile.UserLicense.Name = \'Salesforce\' AND ((Skip_Freezing_mm__c = false AND (LastLoginDate = NULL OR DAY_ONLY(LastLoginDate) <= :LAST_LOGIN_FREEZE_DATE)) ' +
+        'WHERE IsActive = true AND Profile.UserLicense.Name = \'Salesforce\' AND ((Skip_Freezing_mm__c = false AND (LastLoginDate = NULL OR DAY_ONLY(LastLoginDate) <= :LAST_LOGIN_FREEZE_DATE)) ' +
         'OR (Skip_Inactivation_mm__c = false AND (LastLoginDate = NULL OR DAY_ONLY(LastLoginDate) <= :LAST_LOGIN_INACTIVE_DATE))) ';
 
         if (String.isNotBlank(inactiveUserSetting.Excluded_Profiles_mm__c)) {
