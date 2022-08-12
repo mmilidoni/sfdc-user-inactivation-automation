@@ -11,4 +11,4 @@ Features:
 * you can exclude the profiles that will never be frozen/inactivated by this automation;   
 * for security reasons, all users with `System Administrator` profile will be automatically excluded by this automation.
 
-Please visit [https://github.com/mmilidoni/sfdc-user-inactivation-automation/wiki](WIKI Page) to see how to install and configure the package.
+Please visit [WIKI Page](https://github.com/mmilidoni/sfdc-user-inactivation-automation/wiki) to see how to install and configure the package.
