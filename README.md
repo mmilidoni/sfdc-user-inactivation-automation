@@ -1,18 +1,14 @@
-# Salesforce DX Project: Next Steps
+# Salesforce - User Freezing and Inactivation Automation
 
-Now that you’ve created a Salesforce DX project, what’s next? Here are some documentation resources to get you started.
+This tool automatically freezes and inactivates Salesforce users.
 
-## How Do You Plan to Deploy Your Changes?
+Features:
+* you can define the number of days after the last login date a user will get frozen;
+* you can define the number of days after the last login date a user will get inactivated;
+* a notification email will be sent with the list of users frozen and inactivated;
+* the report `Users by Login Date` will be available after installing the package. You can subscribe it to monitor the users that are going to be frozen/inactivated;
+* you can whitelist the users that will never be frozen/inactivated by this automation;
+* you can exclude the profiles that will never be frozen/inactivated by this automation;   
+* for security reasons, all users with `System Administrator` profile will be automatically excluded by this automation.
 
-Do you want to deploy a set of changes, or create a self-contained application? Choose a [development model](https://developer.salesforce.com/tools/vscode/en/user-guide/development-models).
-
-## Configure Your Salesforce DX Project
-
-The `sfdx-project.json` file contains useful configuration information for your project. See [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) in the _Salesforce DX Developer Guide_ for details about this file.
-
-## Read All About It
-
-- [Salesforce Extensions Documentation](https://developer.salesforce.com/tools/vscode/)
-- [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm)
-- [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_intro.htm)
-- [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference.htm)
+Please visit [https://github.com/mmilidoni/sfdc-user-inactivation-automation/wiki](WIKI Page) to see how to install and configure the package.
