@@ -21,6 +21,7 @@ public class UserInactivationBatch_mm_Test {
         UserInactivationBatch_mm obj = new UserInactivationBatch_mm();
         obj.LAST_LOGIN_FREEZE_DATE = Date.today().addDays(2);
         obj.LAST_LOGIN_INACTIVE_DATE = Date.today().addDays(2);
+        obj.recipients = new String[]{'test@test.tst'};
         DataBase.executeBatch(obj, UserInactivationBatch_mm.batchSize); 
         Test.stopTest();
     }

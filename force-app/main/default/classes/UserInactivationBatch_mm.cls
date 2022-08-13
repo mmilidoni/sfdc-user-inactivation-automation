@@ -1,6 +1,6 @@
 public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Database.Stateful {
     
-    private List<String> recipients;
+    @TestVisible private List<String> recipients;
     private List<Database.SaveResult> frozenResult = new List<Database.SaveResult>();
     private List<Database.SaveResult> inactivatedResult = new List<Database.SaveResult>();
     private Map<Id, Id> userLoginToUser = new Map<Id, Id>();
@@ -32,7 +32,7 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
     public Database.QueryLocator start(Database.BatchableContext BC) {
         String q = 'SELECT Id, LastLoginDate, Username, Skip_Freezing_mm__c, Skip_Inactivation_mm__c, IsActive ' +
         'FROM User ' +
-        'WHERE IsActive = true AND Profile.UserLicense.Name = \'Salesforce\' AND ((Skip_Freezing_mm__c = false AND (LastLoginDate = NULL OR DAY_ONLY(LastLoginDate) <= :LAST_LOGIN_FREEZE_DATE)) ' +
+        'WHERE IsActive = true AND Profile.Name <> \'System Administrator\' AND (Profile.UserLicense.Name = \'Salesforce\' OR Profile.UserLicense.Name = \'Salesforce Platform\') AND ((Skip_Freezing_mm__c = false AND (LastLoginDate = NULL OR DAY_ONLY(LastLoginDate) <= :LAST_LOGIN_FREEZE_DATE)) ' +
         'OR (Skip_Inactivation_mm__c = false AND (LastLoginDate = NULL OR DAY_ONLY(LastLoginDate) <= :LAST_LOGIN_INACTIVE_DATE))) ';
 
         if (String.isNotBlank(inactiveUserSetting.Excluded_Profiles_mm__c)) {
@@ -110,7 +110,7 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
             System.debug(usersFrozenSuccess.size() + ' users succesfully processed');
             update usersFrozenSuccess;
 
-            if (recipients.size() > 0) {
+            if (recipients != null && recipients.size() > 0) {
                 Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
                 mail.setToAddresses(recipients);
                 mail.setSubject('User Freezing Report');
@@ -133,7 +133,7 @@ public class UserInactivationBatch_mm implements Database.Batchable<sObject>, Da
                 }
             }
 
-            if (recipients.size() > 0) {
+            if (recipients != null && recipients.size() > 0) {
                 Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
                 mail.setToAddresses(recipients);
                 mail.setSubject('User Inactivation Report');
