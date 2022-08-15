@@ -1,9 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
-        <members>*</members>
+        <members>UserInactivationBatch_mm_Test</members>
+        <members>UserInactivationSchedulable_mm</members>
+        <members>UserInactivationBatch_mm</members>
         <name>ApexClass</name>
     </types>
+    <types>
+        <members>User.Skip_Freezing_mm__c</members>
+        <members>User.Skip_Inactivation_mm__c</members>
+        <name>CustomField</name>
+    </types>
+    <types>
+        <members>Inactive_Users_Setting_mm__mdt</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members>UserFreezingInactivationAutomation_mm/Users_by_login_date_mm</members>    
+        <name>Report</name>
+    </types>
+    
     <!--
     <types>
         <members>*</members>
@@ -17,7 +33,6 @@
         <members>*</members>
         <name>ApexTestSuite</name>
     </types>
-    -->
     <types>
         <members>*</members>
         <name>ApexTrigger</name>
@@ -30,6 +45,7 @@
         <members>*</members>
         <name>LightningComponentBundle</name>
     </types>
+    -->
         <!--
 
     <types>

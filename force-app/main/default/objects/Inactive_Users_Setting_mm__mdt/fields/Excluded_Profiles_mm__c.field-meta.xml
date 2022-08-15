@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Excluded_Profiles_mm__c</fullName>
+    <externalId>false</externalId>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+    <inlineHelpText>By default, all profiles with &quot;Salesforce&quot; as User License will get automatically frozen and/or inactivated. Populate the field with comma-separated profile names to be excluded from this automation.</inlineHelpText>
+    <label>Excluded Profiles</label>
+    <length>32768</length>
+    <type>LongTextArea</type>
+    <visibleLines>3</visibleLines>
+</CustomField>
